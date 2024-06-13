@@ -1,5 +1,5 @@
 def build_suffix_array(seq):
-    suffixes = sorted([(seq[i:], i) for i in range(len(seq))])
+    suffixes = sorted((seq[i:], i) for i in range(len(seq)))
     suffix_arr = [suffix[1] for suffix in suffixes]
     return suffix_arr
 
@@ -26,29 +26,34 @@ def build_lcp_array(seq, suffix_arr):
 def find_repeated_patterns(seq):
     suffix_arr = build_suffix_array(seq)
     lcp = build_lcp_array(seq, suffix_arr)
-    repeated_patterns = []
+    repeated_patterns = [] # ordered data structure to rely on the last pattern for the truncation strategy
     
     for i in range(1, len(lcp)):
         if lcp[i] > 0:
-            pattern = seq[suffix_arr[i]:suffix_arr[i] + lcp[i]]
-            repeated_patterns.append(pattern)
+            for length in range(1, lcp[i] + 1):
+                pattern = tuple(seq[suffix_arr[i]:suffix_arr[i] + length])
+                repeated_patterns.append(pattern)
     
-    return repeated_patterns
+    return [list(pattern) for pattern in repeated_patterns]
 
 
 def apply_truncation_strategy(seq, repeated_patterns):
-    # the patterns are retrieve in the order of the sequence so we can do that since we do right truncation
+    if not repeated_patterns:
+        return seq  # No repeated patterns, no truncation needed
+
+    # The last pattern in the list of repeated patterns
     last_pattern = repeated_patterns[-1]
     pattern_length = len(last_pattern)
-
-    # deduce the bound by searching for the last occurence of the last pattern
-    right_truncation_bound = 0
+    
+    # Find the last occurrence of the last pattern
+    right_truncation_bound = -1
     for i in range(len(seq) - pattern_length + 1):
         if seq[i:i + pattern_length] == last_pattern:
             right_truncation_bound = i + pattern_length
-
-    return seq[:right_truncation_bound]
-
+    
+    # Truncate the sequence at the right truncation bound
+    truncated_seq = seq[:right_truncation_bound]
+    return truncated_seq
 
 # test
 seq = [1, 12, 3, 5, 2, 3, 5, 2, 7, 7, 8, 10]
