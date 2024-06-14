@@ -186,6 +186,7 @@ if __name__ == '__main__':
     sequences, names = load_data(path)
     X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
+    print(labels, names)
     plot_clustering(X, labels, centroids, distances)
 
     if interactive:
