@@ -175,15 +175,18 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', help='The path to TPSD dataset (json format is expected)', default='./data/tpsd_seq_dict.json', type=str)
     parser.add_argument('-t', '--truncation', help="Select the truncation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='right', type=str) # there is an issue with the smart strategy, sometimes the algorithm cannot terminate
     parser.add_argument('-k', '--kmeans', help='The number of desired clusters. Default is 3.', default=3, type=int)
+    parser.add_argument('-i', '--interactive', help='Whether the plot should be interactive, meaning we have the reference of each data point (song) by putting the mouse on it.', action='store_true')
 
     args = parser.parse_args()
     path = args.path
     trunc_strategy = args.truncation
     k = args.kmeans
+    interactive = args.interactive
 
     sequences, names = load_data(path)
     X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
-    # plot_clustering(X, labels, centroids, distances)
-
-    interactive_plot_clustering(X, names, labels, centroids, distances, k, trunc_strategy, trunc_length)
+    plot_clustering(X, labels, centroids, distances)
+    
+    if interactive:
+        interactive_plot_clustering(X, names, labels, centroids, distances, k, trunc_strategy, trunc_length)
