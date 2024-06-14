@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Assign the arguments to variables
+truncation="$0"
+
 # Define the path to your Python script
 PYTHON_SCRIPT="clustering.py"
 
@@ -15,6 +18,6 @@ OUTPUT_FILE="./logs/clustering_runs.txt"
 for k in "${VALUES[@]}"
 do
     echo "Running with kmeans=$k" | tee -a "$OUTPUT_FILE"
-    python3 "$PYTHON_SCRIPT" -k "$k" >> "$OUTPUT_FILE" 2>&1
+    python3 "$PYTHON_SCRIPT" -k "$k" -t "$truncation" >> "$OUTPUT_FILE" 2>&1
     echo "-------------------------------------------------" | tee -a "$OUTPUT_FILE"
 done

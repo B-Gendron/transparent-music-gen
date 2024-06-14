@@ -26,13 +26,13 @@ def load_data(path):
         data = json.load(file)
     sequences = list(data.values())
     labels = list(data.keys())
-    print(len(sequences))
 
     return sequences, labels
 
 
 def apply_truncation(sequences, truncation_strategy):
     truncated_sequences = []
+    truncation_length = 0
 
     if truncation_strategy == 'right':
         truncation_length = min(len(s) for s in sequences)
@@ -47,7 +47,7 @@ def apply_truncation(sequences, truncation_strategy):
         truncation_length = min(length_if_applied)
 
     for seq in sequences:
-        res_seq = seq[:truncation_length] if len(seq) > truncation_length else seq
+        res_seq = seq[:truncation_length]
         truncated_sequences.append(res_seq)
 
     return np.array(truncated_sequences), truncation_length
@@ -187,6 +187,6 @@ if __name__ == '__main__':
     X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
     plot_clustering(X, labels, centroids, distances)
-    
+
     if interactive:
         interactive_plot_clustering(X, names, labels, centroids, distances, k, trunc_strategy, trunc_length)
