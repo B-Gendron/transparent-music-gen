@@ -56,10 +56,10 @@ def apply_truncation_strategy(seq, repeated_patterns):
     return truncated_seq
 
 # test
-seq = [1, 12, 3, 5, 2, 3, 5, 2, 7, 7, 8, 10]
-repeated_patterns = find_repeated_patterns(seq)
-truncated_sequence = apply_truncation_strategy(seq, repeated_patterns)
+# seq = [1, 12, 3, 5, 2, 3, 5, 2, 7, 7, 8, 10]
+# repeated_patterns = find_repeated_patterns(seq)
+# truncated_sequence = apply_truncation_strategy(seq, repeated_patterns)
 
-print(f"Initial sequence of chords: {seq}")
-print(f"Truncated sequence: {truncated_sequence}")
-print(f"Repeated Patterns: {repeated_patterns}")
+# print(f"Initial sequence of chords: {seq}")
+# print(f"Truncated sequence: {truncated_sequence}")
+# print(f"Repeated Patterns: {repeated_patterns}")

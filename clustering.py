@@ -5,6 +5,10 @@ from sklearn.manifold import TSNE
 from sklearn.metrics import pairwise_distances_argmin_min
 import argparse
 import json
+import mplcursors
+
+# import from other scripts in the repo
+from truncation import apply_truncation_strategy, find_repeated_patterns
 
 RANDOM_STATE = 42
 
@@ -21,20 +25,30 @@ def load_data(path):
     with open(path, 'r') as file:
         data = json.load(file)
     sequences = list(data.values())
+    labels = list(data.keys())
 
-    return sequences # this is a list of lists
+    return sequences, labels
 
 
 def apply_truncation(sequences, truncation_strategy):
     truncated_sequences = []
-    truncation_length = min(len(s) for s in sequences)
 
     if truncation_strategy == 'right':
-        for seq in sequences:
-            truncated_sequences.append(seq[:truncation_length])
+        truncation_length = min(len(s) for s in sequences)
     
-    else:
-        pass
+    elif trunc_strategy == 'smart':
+        length_if_applied = []
+        for seq in sequences:
+            repeated_patterns = find_repeated_patterns(seq)
+            truncated_seq_with_strategy = apply_truncation_strategy(seq, repeated_patterns)
+            l = len(truncated_seq_with_strategy)
+            length_if_applied.append(l)
+        truncation_length = min(length_if_applied)
+
+    for seq in sequences:
+        res_seq = seq[:truncation_length] if len(seq) > truncation_length else seq
+        print(len(res_seq))
+        truncated_sequences.append(res_seq)
 
     return np.array(truncated_sequences), truncation_length
 
@@ -98,19 +112,74 @@ def plot_clustering(X, labels, centroids, distances):
     print("\nDistances to the nearest centroid for each sample:\n", distances)
 
 
+def interactive_plot_clustering(X, labels, centroids, distances, k, trunc_strategy, trunc_length):
+    """
+    Plot the clustering results and display cluster centroids and distances (not working yet, just in case we have the time)
+
+    Parameters:
+    X (numpy.ndarray): A 2D array where each row is a data sample.
+    labels (numpy.ndarray): Cluster labels for each data sample.
+    centroids (numpy.ndarray): Coordinates of cluster centroids.
+    distances (numpy.ndarray): Distances of each sample to its nearest centroid.
+    k (int): Number of clusters.
+    trunc_strategy (str): Truncation strategy used.
+    trunc_length (int): Truncation length.
+    """
+    # TSNE to plot data in a 2D space
+    combined = np.vstack([X, centroids])
+    tsne = TSNE(n_components=2, random_state=42)  # Use a fixed random state for reproducibility
+    combined_2d = tsne.fit_transform(combined)
+    X_2d = combined_2d[:X.shape[0]]
+    centroids_2d = combined_2d[X.shape[0]:]
+
+    # Plot clustering in 2D space
+    plt.figure()
+    scatter = plt.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, marker='o', edgecolor='k')
+
+    # Add centroids to the plot
+    plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100)
+
+    # Set plot title
+    plt.title(f"Clustered Data (k={k}, truncation strategy={trunc_strategy}, truncation length={trunc_length})")
+
+    # Function to format tooltip text
+    def format_tooltip(sel):
+        ind = sel.target.index
+        if ind < len(X):
+            return f"Label: {labels[ind]}"
+        else:
+            return f"Centroid {ind - len(X) + 1}"
+
+    # Enable interactive tooltips using mplcursors
+    mplcursors.cursor(hover=True).connect("add", lambda sel: sel.annotation.set_text(format_tooltip(sel)))
+
+    # Save the plot
+    plt.savefig(f'./plots/clusters_{k}_{trunc_strategy}_{trunc_length}.png', dpi=500, bbox_inches='tight')
+
+    # Show distances to centroids
+    print("Cluster centroids:\n", centroids)
+    print("\nDistances to the nearest centroid for each sample:\n", distances)
+
+    # Display the plot
+    plt.show()
+
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path', help='The path to TPSD dataset (json format is expected)', default='./data/tpsd_seq_dict.json', type=str)
-    parser.add_argument('-t', '--truncation', help="Select the trucation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='right', type=str)
-    parser.add_argument('-k', '--kmeans', help='The number of desired clusters. Default is 3.', default=5, type=int)
+    parser.add_argument('-t', '--truncation', help="Select the truncation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='smart', type=str)
+    parser.add_argument('-k', '--kmeans', help='The number of desired clusters. Default is 3.', default=3, type=int)
 
     args = parser.parse_args()
     path = args.path
     trunc_strategy = args.truncation
     k = args.kmeans
 
-    sequences = load_data(path)
+    sequences, names = load_data(path)
     X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
     plot_clustering(X, labels, centroids, distances)
+
+    # interactive_plot_clustering(X, names, centroids, distances, k, trunc_strategy, trunc_length)
