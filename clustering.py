@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path', help='The path to TPSD dataset (json format is expected)', default='./data/tpsd_seq_dict.json', type=str)
-    parser.add_argument('-t', '--truncation', help="Select the truncation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='smart', type=str)
+    parser.add_argument('-t', '--truncation', help="Select the truncation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='right', type=str) # there is an issue with the smart strategy, sometimes the algorithm cannot terminate
     parser.add_argument('-k', '--kmeans', help='The number of desired clusters. Default is 3.', default=3, type=int)
 
     args = parser.parse_args()
