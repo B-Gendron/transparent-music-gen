@@ -25,8 +25,10 @@ def load_data(path):
     return sequences # this is a list of lists
 
 
-def apply_truncation(sequences, truncation_strategy, truncation_length):
+def apply_truncation(sequences, truncation_strategy):
     truncated_sequences = []
+    truncation_length = min(len(s) for s in sequences)
+    
     if truncation_strategy == 'right':
         for seq in sequences:
             truncated_sequences.append(seq[:truncation_length])
@@ -34,7 +36,7 @@ def apply_truncation(sequences, truncation_strategy, truncation_length):
     else:
         pass
 
-    return np.array(truncated_sequences)
+    return np.array(truncated_sequences), truncation_length
 
 
 def apply_kmeans(X, k):
@@ -82,7 +84,7 @@ def plot_clustering(X, labels, centroids, distances):
 
     plt.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, marker='o', edgecolor='k')
     plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100)
-    plt.title("Clustered Data")
+    plt.title(f"Clustered Data (k={k}, tuncation strategy={trunc_strategy}, truncation_length={trunc_length})")
     plt.show()
 
     print("Cluster centroids:\n", centroids)
@@ -94,16 +96,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path', help='The path to TPSD dataset (json format is expected)', default='./data/tpsd_seq_dict.json', type=str)
     parser.add_argument('-t', '--truncation', help="Select the trucation strategy to perform on TPSD sequences. Can be either 'right', meaning naive right truncation, or 'smart', meaning taking care of keeping reapeting patterns.", default='right', type=str)
-    parser.add_argument('-l', '--length', help='The length of the TPSD sequence to consider, which is actually the threshold for truncation.', default=40, type=int)
     parser.add_argument('-k', '--kmeans', help='The number of desired clusters. Default is 3.', default=5, type=int)
 
     args = parser.parse_args()
     path = args.path
     trunc_strategy = args.truncation
-    trunc_length = args.length
     k = args.kmeans
 
     sequences = load_data(path)
-    X = apply_truncation(sequences, trunc_strategy, trunc_length)
+    X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
     plot_clustering(X, labels, centroids, distances)
