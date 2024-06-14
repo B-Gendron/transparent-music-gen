@@ -28,7 +28,7 @@ def load_data(path):
 def apply_truncation(sequences, truncation_strategy):
     truncated_sequences = []
     truncation_length = min(len(s) for s in sequences)
-    
+
     if truncation_strategy == 'right':
         for seq in sequences:
             truncated_sequences.append(seq[:truncation_length])
@@ -76,17 +76,24 @@ def plot_clustering(X, labels, centroids, distances):
     centroids (numpy.ndarray): Coordinates of cluster centroids.
     distances (numpy.ndarray): Distances of each sample to its nearest centroid.
     """
+    # TSNE to plot data in a 2D space
     combined = np.vstack([X, centroids])
     tsne = TSNE(n_components=2, random_state=RANDOM_STATE)
     combined_2d = tsne.fit_transform(combined)
     X_2d = combined_2d[:X.shape[0]]
     centroids_2d = combined_2d[X.shape[0]:]
 
+    # plot clustering in 2D space
+    plt.figure()
     plt.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, marker='o', edgecolor='k')
     plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100)
     plt.title(f"Clustered Data (k={k}, tuncation strategy={trunc_strategy}, truncation_length={trunc_length})")
-    plt.show()
+    # plt.show()
 
+    # save the plot
+    plt.savefig(f'./plots/clusters_{k}_{trunc_strategy}_{trunc_length}.png', dpi=500, bbox_inches='tight')
+
+    # show distances to centroidss
     print("Cluster centroids:\n", centroids)
     print("\nDistances to the nearest centroid for each sample:\n", distances)
 
