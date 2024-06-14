@@ -26,6 +26,7 @@ def load_data(path):
         data = json.load(file)
     sequences = list(data.values())
     labels = list(data.keys())
+    print(len(sequences))
 
     return sequences, labels
 
@@ -47,7 +48,6 @@ def apply_truncation(sequences, truncation_strategy):
 
     for seq in sequences:
         res_seq = seq[:truncation_length] if len(seq) > truncation_length else seq
-        print(len(res_seq))
         truncated_sequences.append(res_seq)
 
     return np.array(truncated_sequences), truncation_length
@@ -112,12 +112,13 @@ def plot_clustering(X, labels, centroids, distances):
     print("\nDistances to the nearest centroid for each sample:\n", distances)
 
 
-def interactive_plot_clustering(X, labels, centroids, distances, k, trunc_strategy, trunc_length):
+def interactive_plot_clustering(X, song_titles, labels, centroids, distances, k, trunc_strategy, trunc_length):
     """
-    Plot the clustering results and display cluster centroids and distances (not working yet, just in case we have the time)
+    Plot the clustering results and display cluster centroids and distances.
 
     Parameters:
     X (numpy.ndarray): A 2D array where each row is a data sample.
+    song_titles (list of str): List of song titles corresponding to each data sample.
     labels (numpy.ndarray): Cluster labels for each data sample.
     centroids (numpy.ndarray): Coordinates of cluster centroids.
     distances (numpy.ndarray): Distances of each sample to its nearest centroid.
@@ -125,7 +126,7 @@ def interactive_plot_clustering(X, labels, centroids, distances, k, trunc_strate
     trunc_strategy (str): Truncation strategy used.
     trunc_length (int): Truncation length.
     """
-    # TSNE to plot data in a 2D space
+    # Combine data samples and centroids for TSNE transformation
     combined = np.vstack([X, centroids])
     tsne = TSNE(n_components=2, random_state=42)  # Use a fixed random state for reproducibility
     combined_2d = tsne.fit_transform(combined)
@@ -134,19 +135,22 @@ def interactive_plot_clustering(X, labels, centroids, distances, k, trunc_strate
 
     # Plot clustering in 2D space
     plt.figure()
-    scatter = plt.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, marker='o', edgecolor='k')
+    scatter = plt.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, cmap='viridis', marker='o', edgecolor='k')
 
     # Add centroids to the plot
-    plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100)
+    plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], c='red', marker='x', s=100, label='Centroids')
 
-    # Set plot title
+    # Set plot title and labels
     plt.title(f"Clustered Data (k={k}, truncation strategy={trunc_strategy}, truncation length={trunc_length})")
+    plt.xlabel("TSNE Component 1")
+    plt.ylabel("TSNE Component 2")
+    plt.legend()
 
     # Function to format tooltip text
     def format_tooltip(sel):
         ind = sel.target.index
         if ind < len(X):
-            return f"Label: {labels[ind]}"
+            return f"Song: {song_titles[ind]}\nCluster: {labels[ind]}\nDistance to centroid: {distances[ind]:.2f}"
         else:
             return f"Centroid {ind - len(X) + 1}"
 
@@ -180,6 +184,6 @@ if __name__ == '__main__':
     sequences, names = load_data(path)
     X, trunc_length = apply_truncation(sequences, trunc_strategy)
     labels, centroids, distances = apply_kmeans(X, k)
-    plot_clustering(X, labels, centroids, distances)
+    # plot_clustering(X, labels, centroids, distances)
 
-    # interactive_plot_clustering(X, names, centroids, distances, k, trunc_strategy, trunc_length)
+    interactive_plot_clustering(X, names, labels, centroids, distances, k, trunc_strategy, trunc_length)
